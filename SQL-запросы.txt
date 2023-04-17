@@ -1,0 +1,307 @@
+-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-- Запрос 1 - вывести названия повторяющихся тем из таблицы themes
+select title from themes group by title having count(*)>1;
+
+-- Запрос 2 - вывести id повторяюшихся тем из таблицы themes для последующего удаления дубликатов
+-- P.S. дубликатом является второе по счёту id
+select idthemes , title from themes
+where title = 'Parkour' or title = 'Emotional'
+order by title asc;
+
+-- Запрос 3 - проверка на нахождение лишних дубликатов тем в уже заполненной таблице games_to_themes
+-- если таковые имеются, то мы произведём операцию update вместо delete, чтобы избежать ошибки потери данных
+select id_game, id_theme, games.title from games_to_themes as g_t_t
+join games on g_t_t.id_game = games.idgames
+where 
+id_theme = 63 or 
+id_theme = 41 ;
+
+-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-- Запрос 4-5 - удаление дубликатов из таблицы themes 
+delete from themes where 
+idthemes = 63 or idthemes = 41;
+-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+-- Запрос 6 - вывести названия повторяющихся игровых наград из таблицы game_awards
+select title from game_awards group by title having count(*)>1;
+
+-- Запрос 7 - вывести id повторяюшихся игровых наград из таблицы game_awards для последующего удаления дубликатов
+-- P.S. дубликатом является второе по счёту id
+select idgame_awards, title from game_awards
+where 
+title = 'Best of Show' or 
+title = 'Best Story' or 
+title = 'Best Role Playing Game' or 
+title = 'Original Dramatic Score, Franchise' or 
+title = 'Fans` Choice' or 
+title = 'Best Male Lead Vocal Performance in a Video Game' or 
+title = 'Best Video Game' or
+title = 'Outstanding Visual Effects in a Real-Time Project' or 
+title = 'Song Collection'
+order by title asc;
+
+-- Запрос 8 - проверка на нахождение лишних дубликатов игровых наград в уже заполненной таблице games_to_awards
+-- если таковые имеются, то мы произведём операцию update вместо delete, чтобы избежать ошибки потери данных
+select id_game, games.title, id_award from games_to_awards as g_t_a
+join games on g_t_a.id_game = games.idgames
+where 
+id_award = 97 or 
+id_award = 104 or 
+id_award = 120 or 
+id_award = 132 or 
+id_award = 77 or 
+id_award = 114 or 
+id_award = 89 or 
+id_award = 122 or 
+id_award = 107 ;
+
+-- Запрос 9-15 - удаление дубликатов из таблицы game_awards
+delete from game_awards where 
+idgame_awards = 97 or 
+idgame_awards = 104 or
+idgame_awards = 120 or
+idgame_awards = 132 or
+idgame_awards = 114 or
+idgame_awards = 122 or
+idgame_awards = 107 ;
+
+-- Запрос 16-17 - обновление данных в таблице games_to_awards
+update games_to_awards set id_award = 70 where id_award = 77;
+update games_to_awards set id_award = 65 where id_award = 89;
+
+-- Запрос 18-19 - повторное удаление дубликатов из таблицы game_awards
+delete from game_awards where 
+idgame_awards = 77 or
+idgame_awards = 89 ;
+-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+-- Запрос 20 - вывести id, логин, страну и дату создания аккаунтов, зарегистрированных после 2015 года в России
+select idaccounts, login, country, account_creation_date from accounts
+where year(account_creation_date) > 2015 and country like concat ('%','Russ','%');
+
+-- Запрос 21 - вывести id, логин, страну и дату создания аккаунтов, зарегистрированных в период с 2014 по 2020 год
+select idaccounts, login, country, account_creation_date from accounts
+where year(account_creation_date) between 2014 and 2020;
+
+-- Запрос 22 - вывести id, логин, страну, способ оплаты и номер телефона аккаунтов, у которых имеется привязанный для оплаты счёт 
+select idaccounts, login, country, phone, form_of_payment from accounts
+where form_of_payment is not null;
+
+
+-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-- Запрос 23 - вывести IP-адреса аккаунтов, с которых было произведено несколько авторизаций
+select IPaddress, group_concat(id_account separator ',  ') as 'id аккаунтов, в которые была произведена авторизация' from users
+group by IPaddress having count(*)>1;
+
+-- Запрос 24 - вывести id, логин, никнейм и время последнего посещения аккаунтов, авторизированных с одного IP-адреса
+select IPaddress, id_account, accounts.login, accounts.nickname, visit_time from users
+join accounts on users.id_account = accounts.idaccounts
+where IPaddress = '46.164.176.196' or IPaddress = '8.57.99.219'
+order by IPaddress desc;
+-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+-- Запрос 25 - вывести IP-адрес, последнее время посещения, должности и имена сотрудников, которые авторизировались со своего аккаунта
+select IPaddress, staff.`name`, staff.post, visit_time from users
+join staff on users.id_staff_account = staff.idstaff;
+
+-- Запрос 26 - вывести имена, должности, ставки и заработные платы сотрудников со ставкой от 1 до 1.3
+select name, post, salary, factor_of_utility from staff
+where factor_of_utility between 1 and '1.3'
+order by post, salary;
+
+-- Запрос 27 - вывести имена, должности, ставки, номера телефонов и заработные платы сотрудников, присоединившихся к команде после 2018
+select name, post, salary, factor_of_utility, staff_accounts.phone, date_of_admission from staff
+join staff_accounts on staff.idstaff = staff_accounts.id_staff
+where year(date_of_admission) > 2018
+order by date_of_admission;
+
+-- Запрос 28 - вывести id и имена сотрудников, у которых есть свой игровой аккаунт
+select idstaff, name, id_account from staff
+where id_account is not null
+order by name asc;
+
+-- Запрос 29 - вывести id, имена и рабочий график сотрудников, с количеством рабочих дней больше 26
+select idstaff, name, work_schedule_from, work_schedule_to, number_of_working_days from staff
+where number_of_working_days > 26
+order by idstaff,name asc;
+
+-- Запрос 30 - вывести среднюю заработную плату сотрудников с должностью Support specialist
+select post as 'Должность', avg(salary) as 'Средняя заработная плата'from staff
+where post = 'Support specialist';
+
+-- Запрос 31 - вывести должность с наивысшей заработной платой
+select post, salary from staff
+where salary=(select max(salary) FROM staff);
+
+-- Запрос 32- вывести должности с заработной платой от $6000 до $10000
+select post, salary from staff
+where salary between 6000 and 10000
+order by salary;
+
+-- Запрос 33 - вывести должности с заработной платой от $2000 до $10000 (ограничение - 10)
+select post, salary from staff
+where salary between 2000 and 10000
+order by salary
+limit 10;
+
+-- Запрос 34 - вывести id, имена и должности сотрудников, которые уволились
+select idstaff, name, post, date_of_dismissal from staff
+where date_of_dismissal is not null;
+
+-- Запрос 35 - вывести информацию о разработчиках с количеством продуктов равным 1
+select * from developers
+where number_of_products = 1
+order by rating desc;
+
+-- Запрос 36 - вывести информацию о разработчиках с рейтингом большим или равным 4
+select * from developers
+where rating >= 4
+order by rating desc;
+
+-- Запрос 37 - вывести информацию о разработчиках из Японии
+select * from developers
+where location like concat ('%','Japan','%')
+order by rating desc;
+
+-- Запрос 38 - вывести информацию о разработчиках из Америки
+select * from developers
+where location like concat ('%','US','%')
+order by rating desc;
+
+-- Запрос 39 - вывести названия игр, у которых общий разработчик и издатель
+select title from games
+where id_developer = id_publisher
+order by title;
+
+-- Запрос 40 - вывести разработчиков, список их продуктов и рейтинг
+select developers.name as 'developer', rating, group_concat(title separator ',  ') as 'products' from games
+join developers on games.id_developer = developers.iddevelopers
+group by id_developer
+order by rating desc;
+
+-- Запрос 41 - вывести названия игр из серии Souls и Resident evil
+select games_series.title as 'Серия игр', group_concat(games.title separator ',  ') as 'Игры, входящие в серию' from games
+join games_series on games.id_game_series = games_series.idgames_series
+where games_series.title like concat ('%','Soul','%') or games_series.title like concat ('%','resid','%')
+group by id_game_series;
+
+-- Запрос 42 - вывести id технической поддержки и имена всех принадлежащих ей сотрудников
+select idsupports as '№ технической поддержки', group_concat(name separator ',  ') as 'имена сотрудников' from supports
+join staff on supports.id_staff = staff.idstaff
+group by idsupports;
+
+-- Запрос 43 - вывести игры и врученные им награды
+select games.title, group_concat(game_awards.title separator ',  ') from games_to_awards
+join games on games_to_awards.id_game = games.idgames
+join game_awards on games_to_awards.id_award = game_awards.idgame_awards
+group by id_game;
+
+-- Запрос 44 - вывести игры без единой номинации на награду
+select idgames, title from games
+where not exists (
+    select 1 
+    from games_to_awards 
+    where games_to_awards.id_game = games.idgames); 
+    
+-- Запрос 45 - вывести игры с количеством наград от 1 до 10 (также вывести сами награды)
+select games.title as 'Название игры', count(id_award) as 'Количество наград', group_concat(game_awards.title separator ',  ') as 'Награды' from games_to_awards
+join game_awards on games_to_awards.id_award = game_awards.idgame_awards
+join games on games_to_awards.id_game = games.idgames
+group by id_game having count(id_award) between 1 and 10
+order by count(id_award);
+
+-- Запрос 46 - вывести игры с жанром Role-playing и Action
+select genres.title as 'Название жанра', group_concat(games.title separator ',  ') as 'Игры, соответствующие выбранному жанру' from games_to_genres
+join games on games_to_genres.id_game = games.idgames
+join genres on games_to_genres.id_genre = genres.idgenres
+where genres.title like concat ('%','role','%') or genres.title like concat ('%','str','%')
+group by genres.title;
+
+-- Запрос 47 - вывести игры, которые являются многопользовательскими
+select types.title as 'Тип', group_concat(games.title separator ',  ') as 'Игры, соответствующие выбранному типу' from games_to_types
+join games on games_to_types.id_game = games.idgames
+join types on games_to_types.id_type = types.idtypes
+where types.title like concat ('%','mult','%')
+group by types.title;
+
+
+-- Запрос 48 - вывести название, издателя и дату выпуска игр, вышедших после 2016 года и ассоциирующихся с темами realistic и open world
+select games.title as 'Название игры', games.date_of_creation as 'Дата выпуска', publishers.`name` as 'Издатель', group_concat(themes.title separator ',  ') as 'Темы' from games_to_themes as g_t_t
+join games on g_t_t.id_game = games.idgames
+join themes on g_t_t.id_theme = themes.idthemes
+join publishers on games.id_publisher = publishers.idpublishers
+where year(games.date_of_creation) > 2016 and (themes.title like concat ('%', 'real', '%') or themes.title like concat ('%', 'open', '%'))
+group by id_game
+order by games.title asc;
+
+-- Запрос 49 - вывести игры и ассоциирующиеся с ними темы
+select games.title as 'Название игры', group_concat(themes.title separator ',  ') as 'Темы' from games_to_themes as g_t_t
+join games on g_t_t.id_game = games.idgames
+join themes on g_t_t.id_theme = themes.idthemes
+group by id_game
+order by games.title asc;
+
+-- Запрос 50-55 - обновление данных в таблице accounts (добавление списка рекомендаций аккаунтам, с которых был произведён хотя бы 1 поисковой запрос)
+update accounts set id_recommend_list = 1 where idaccounts = 1;
+update accounts set id_recommend_list = 3 where idaccounts = 3;
+update accounts set id_recommend_list = 4 where idaccounts = 4;
+update accounts set id_recommend_list = 5 where idaccounts = 5;
+update accounts set id_recommend_list = 7 where idaccounts = 7;
+update accounts set id_recommend_list = 8 where idaccounts = 8;
+
+-- Запрос 56 - вывести список игр, введённых в поисковых запросах у каждого аккаунта за всё время
+select accounts.idaccounts as 'id аккаунта', accounts.login as 'Логин', group_concat(games.title separator ',  ') as'Поисковые запросы' from games_search
+join accounts on games_search.id_account = accounts.idaccounts
+join games on games_search.id_game = games.idgames
+group by games_search.id_account;
+
+-- Запрос 57 - показать список рекомендаций у каждого аккаунта
+select accounts.login as 'Логин', accounts.idaccounts as 'id списка рекомендаций (соответствует id аккаунта)',genres.title as 'Преобладающий жанр', games.title as 'Игра, рекомендуемая к приобретению',  recommendation_lists.date_of_creation as 'Последнее обновление' from recommendation_lists
+join accounts on recommendation_lists.id_account = accounts.idaccounts
+join games on recommendation_lists.id_proposed_game = games.idgames
+join genres on recommendation_lists.id_prevailing_genre = genres.idgenres
+group by recommendation_lists.id_account;
+
+-- Запрос 58 - показать все обращения аккаунтов в техническую поддержку № 2 в период с 6:00 до 18:00
+select distinct accounts.idaccounts, accounts.login, supports.idsupports, time_of_appeal, data_of_appeal, id_game from accounts_to_supports
+join accounts on accounts_to_supports.id_account = accounts.idaccounts
+join supports on accounts_to_supports.id_support = supports.idsupports
+where accounts_to_supports.id_support = 2 and (hour(time_of_appeal) between 6 and 18);
+
+-- Запрос 59 - показать все обращения аккаунтов в техническую поддержку № 1 в период с 00:00 до 12:00
+select distinct accounts.idaccounts, accounts.login, supports.idsupports, time_of_appeal, data_of_appeal, id_game from accounts_to_supports
+join accounts on accounts_to_supports.id_account = accounts.idaccounts
+join supports on accounts_to_supports.id_support = supports.idsupports
+where accounts_to_supports.id_support = 1 and (hour(time_of_appeal) between 0 and 12)
+order by time_of_appeal;
+
+-- Запрос 60 - показать все обращения аккаунтов в техническую поддержку, не связанные с внутриигровыми проблемами
+select distinct accounts.idaccounts, accounts.login, supports.idsupports, time_of_appeal, data_of_appeal, id_game from accounts_to_supports
+join accounts on accounts_to_supports.id_account = accounts.idaccounts
+join supports on accounts_to_supports.id_support = supports.idsupports
+where id_game is null
+order by time_of_appeal;
+
+-- Запрос 61 - вывести количество сотрудников с должностью Support specialist
+select post, count(post) as 'Количество сотрудников' from staff
+where post = 'Support specialist';
+
+-- Запрос 62 - вывести основную информацию о сотруднике, чья заработная плата является самой низкой
+select idstaff, name, post, salary, work_schedule_from, work_schedule_to, number_of_working_days from staff
+where salary=(select min(salary) FROM staff);
+
+-- Запрос 63 - вывести названия приобретённых игр у всех аккаунтов
+select id_account, accounts.login, accounts.nickname, group_concat(games.title separator ',  ') as 'Названия игр' from games_purchase as g_p
+join accounts on g_p.id_account = accounts.idaccounts
+join games on g_p.id_game = games.idgames
+group by g_p.id_account;
+
+-- Запрос 64 - объединение результирующего набора select для двух таблиц (games_search и games_purchase - поиск и покупка игр соответственно)
+select id_account, group_concat(id_game separator ',  ') as 'id просмотренных и купленных игр' from games_purchase group by id_account 
+union 
+select id_account, group_concat(id_game separator ',  ') from games_search group by id_account;
+
+-- Запрос 65 - выборка между двумя таблицами (publishers и developers - издатели и разработчики игр соответственно). Запрос выводит имена разработчиков и издателей, которые являются общими для обеих таблиц
+-- Данный запрос выведет крупные компании, которые являются одновременно и разработчиками и издателями своих игр
+select publishers.`name` from publishers
+right join developers using(`name`);
